@@ -1,0 +1,61 @@
+$headerHeight: 50px;
+
+body {
+    background-color: #0000;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+
+    .App {
+        height: 100vh;
+        width: 100vw;
+        border: solid 1px #f0f;
+        position: relative;
+    }
+
+    .header {
+        height: $headerHeight;
+        width: 100%;
+        background-color: #333;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+    }
+
+    .container_list {
+        text-align: left;
+        color: #0f0;
+        height: calc(50vh - #{$headerHeight});
+        border: solid 1px #f0f;
+        overflow: auto;
+    }
+
+    .monaco_editor_container {
+        // width: 50vw;
+        height: calc(100vh - #{$headerHeight});
+
+    }
+
+    .monaco_editor_wrapper {
+        width: 100%;
+        height: 100%;
+    }
+
+    .graph_container {
+        flex-grow: 1;
+        // width: 50vw;
+        height: calc(100vh - #{$headerHeight});
+    }
+
+    .docker_composer_graph {
+        width: 100%;
+        height: 1200px;
+    }
+}

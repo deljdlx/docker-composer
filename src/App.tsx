@@ -1,81 +1,110 @@
-// import logo from './logo.svg';
 import './App.css';
+import "./assets/scss/main.scss";
+
+
+import { useEffect, useState } from "react";
 
 import { useDockerComposerStore } from "./stores/useDockerComposerStore";
 
 import { MonacoEditor } from './components/MonacoEditor/MonacoEditor';
 import { DockerComposerGraph } from './components/DockerComposerGraph/DockerComposerGraph';
 
+
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+
+
+import {  usePanelStore } from "./stores/usePanelStore";
+
+
+
+import {TestButton} from './components/TestButton/TestButton';
+
+
+import Modal from 'react-modal';
+
+import { NodeInfoPopup } from './components/NodeInfoPopup/NodeInfoPopup';
+
+import { ContainerList } from './components/ContainerList/ContainerList';
+
+// import { DockerComposerFlow } from './components/DockerComposerFlow/DockerComposerFlow';
+
+
+Modal.setAppElement("#root")
+
+
 function App() {
 
   const {
-    content,
-    parsedData,
-  } = useDockerComposerStore(); // 🔥 Récupère le co
+    selectedService,
+  } = useDockerComposerStore();
+
+  const [selectedNode, setSelectedNode] = useState<any>(null);
+
+
+  const {
+    leftPanelSize,
+    rightPanelSize,
+    setSizes
+  } = usePanelStore();
+
+
+  useEffect(() => {
+    console.log('%cApp.tsx :: 33 =============================', 'color: #f00; font-size: 1rem');
+    console.log('APP RENDER');
+  });
+
+
+
+  let resizeTimeout: NodeJS.Timeout | null = null;
+
+  const handleResize = (sizes: number[]) => {
+    if (resizeTimeout) clearTimeout(resizeTimeout);
+
+    resizeTimeout = setTimeout(() => {
+      setSizes({ leftPanelSize: sizes[0], rightPanelSize: sizes[1] });
+    }, 300);
+  };
+
+  const handleNodeClick = (node: any) => {
+    console.log('%cApp.tsx :: 53 =============================', 'color: #f00; font-size: 1rem');
+    console.log(node);
+    setSelectedNode(node);
+  }
 
 
   return (
     <div className="App">
+      <NodeInfoPopup/>
+      <div className="header">HEADER {selectedService}</div>
+      <div style={{ height: "100vh", width: "100vw" }}>
+        <PanelGroup
+          direction="horizontal"
+          onLayout={(sizes) =>
+            handleResize(sizes)
+          }
+        >
+          <Panel defaultSize={leftPanelSize}>
+            <div className="monaco_editor_container">
+              <MonacoEditor/>
+            </div>
+          </Panel>
+          <PanelResizeHandle className="w-2 bg-blue-800"/>
+          <Panel defaultSize={rightPanelSize}>
+            <DockerComposerGraph
+              onNodeClick={(node) => handleNodeClick(node)}
+            />
 
-      <div>
-        <div style={{
-        }}>
-          <MonacoEditor/>
-        </div>
-        <div>
-         <DockerComposerGraph />
-        </div>
+
+            {/* <ContainerList/> */}
+
+          </Panel>
+        </PanelGroup>
       </div>
 
 
-      <div style={{
-        display: "none",
-      }}>
-        <pre
-            style={{
-              backgroundColor: "#282c34",
-              textAlign: "left",
-              color: "white",
-              padding: "10px",
-              borderRadius: "5px",
-              overflowX: "auto",
-              whiteSpace: "pre-wrap", // Permet le retour à la ligne
-              wordBreak: "break-word",
-              maxHeight: "300px", // Limite la hauteur pour éviter le débordement
-            }}
-          >
-            {JSON.stringify(parsedData, null, 2)}
-        </pre>
-      </div>
-
-
-
-      <div style={{
-        display: "none",
-      }}>
-        <pre
-            style={{
-              backgroundColor: "#282c34",
-              textAlign: "left",
-              color: "white",
-              padding: "10px",
-              borderRadius: "5px",
-              overflowX: "auto",
-              whiteSpace: "pre-wrap", // Permet le retour à la ligne
-              wordBreak: "break-word",
-              maxHeight: "300px", // Limite la hauteur pour éviter le débordement
-            }}
-          >
-            {content}
-        </pre>
-      </div>
-
-
-
-
-
-
-
+        {/* <div>
+          <DockerComposerFlow />
+        </div> */}
     </div>
   );
 }
