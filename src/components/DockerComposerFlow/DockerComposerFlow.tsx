@@ -48,8 +48,8 @@ const getLayoutedNodes = (nodes: DockerNode[], edges: Edge[], direction = "TB") 
 };
 
 export const DockerComposerFlow: React.FC = () => {
-  const { parsedData } = useDockerComposerStore();
-  const services: Record<string, Service> = parsedData.services || {};
+  const { configuration } = useDockerComposerStore();
+  const services: Record<string, Service> = configuration.services || {};
 
   // 🔹 Création des nœuds avec une position par défaut
   const initialNodes: DockerNode[] = Object.keys(services).map((serviceName) => ({
@@ -77,7 +77,7 @@ export const DockerComposerFlow: React.FC = () => {
     // Générer la disposition automatique et mettre à jour les nœuds
     const layoutedNodes = getLayoutedNodes(initialNodes, initialEdges);
     setNodes(layoutedNodes);
-  }, [parsedData]); // Rafraîchir si les données changent
+  }, [configuration]); // Rafraîchir si les données changent
 
   // 🔹 Gérer le déplacement des nœuds
   const onNodesChange = useCallback(

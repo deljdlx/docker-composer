@@ -7,15 +7,13 @@ import { usePanelStore } from "../../stores/usePanelStore";
 
 export const MonacoEditor: React.FC = () => {
   const {
-    content,
-    setContent,
-    parseYaml,
-    setSelectedService,
+    configuration,
+    setConfigurationByYaml,
+    setSelectedServiceById,
   } = useDockerComposerStore();
 
   const handleChange = (value: string) => {
-    setContent(value);
-    parseYaml();
+    setConfigurationByYaml(value);
   };
 
   // used to resize the editor
@@ -27,32 +25,16 @@ export const MonacoEditor: React.FC = () => {
   const handleEditorDidMount = (editor: any) => {
       editorRef.current = editor;
 
-
-      console.log('%cNodeInfoPopup.tsx :: 39 =============================', 'color: #f00; font-size: 1rem');
-      console.log(editor);
-
-      // Écouter les clics sur le code
+      // listen for line clicks
       editor.onMouseDown((event: any) => {
-      if (event.target && event.target.position) {
-          const lineNumber = event.target.position.lineNumber;
-          console.log("Ligne cliquée :", lineNumber);
-
-          // 🔥 Exécuter une action spécifique selon la ligne
-          // handleLineClick(lineNumber);
-
-          detectServiceFromLine(lineNumber);
-      }
+        if (event.target && event.target.position) {
+            const lineNumber = event.target.position.lineNumber;
+            console.log("Click on line:", lineNumber);
+            detectServiceFromLine(lineNumber);
+        }
       });
   };
 
-  const handleLineClick = (line: number) => {
-      alert(`Ligne ${line} cliquée !`);
-  };
-
-
-
-
-   // 🔥 Fonction pour récupérer le service en fonction de la ligne cliquée
    const detectServiceFromLine = (line: number) => {
     if (!editorRef.current) {
         return;
@@ -86,14 +68,13 @@ export const MonacoEditor: React.FC = () => {
         }
       }
 
-      if (foundService) {
-        console.log('%cMonacoEditor.tsx :: 90 =============================', 'color: #f00; font-size: 1rem');
-        console.log(foundService);
-        setSelectedService(foundService);
+      if(foundService) {
+        console.log('%cMonacoEditor.tsx::72::', 'color: #f00; font-size: 1rem', foundService);
+        setSelectedServiceById(foundService);
         return;
       }
 
-      setSelectedService("");
+      setSelectedServiceById("");
     }
   };
 
@@ -110,7 +91,7 @@ export const MonacoEditor: React.FC = () => {
       <Editor
         height="100%"
         defaultLanguage="yaml"
-        value={content}
+        value={configuration.yaml}
         onChange={(value) => handleChange(value || "")}
         onMount={handleEditorDidMount}
         theme="vs-dark"  // 🌙 Mode sombre + coloration syntaxique

@@ -1,14 +1,16 @@
 import React, { useState, useRef } from 'react';
+import { useDockerComposerStore } from "../../stores/useDockerComposerStore";
+
 import Modal from 'react-modal';
 import Editor from "@monaco-editor/react";
 import YAML from "yaml";
 
-import { useDockerComposerStore } from "../../stores/useDockerComposerStore";
-
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import 'react-tabs/style/react-tabs.css';
 
 export const NodeInfoPopup: React.FC = () => {
     const {
-        parsedData,
+        configuration,
         selectedNode,
         setSelectedNode,
         updateConfiguration,
@@ -17,7 +19,7 @@ export const NodeInfoPopup: React.FC = () => {
 
     const [newConfiguration, setNewConfiguration] = useState<string>("");
     // const content: string = JSON.stringify(selectedNode?.data, null, 2);
-    const content: string = YAML.stringify(selectedNode?.data);
+    const content: string = selectedNode?.service.getYaml();
 
     const closeModal = () => {
         setSelectedNode(null);
@@ -46,54 +48,43 @@ export const NodeInfoPopup: React.FC = () => {
           },
         }}
       >
-        <h2>Service ID : {selectedNode?.id}</h2>
 
 
 
-        <p><b>Depends On:</b> {selectedNode?.data?.depends_on?.join(", ") || "None"}</p>
-        <p><b>Volumes:</b> {selectedNode?.data?.volumes?.join(", ") || "None"}</p>
+        <Tabs>
+            <TabList>
+            <Tab>Informations</Tab>
+            <Tab>Title 2</Tab>
+            </TabList>
 
-{/*     kept for future enhancement
-        <div>
-            {
-                Object.keys(parsedData.services).map((serviceName) => {
-                    const service = parsedData.services[serviceName];
-                    return (
-                        <div key={serviceName}>
-                            <label>
-                                {serviceName}
-                                <input
-                                    checked={selectedNode?.data?.depends_on?.includes(serviceName)}
-                                    type="checkbox"
-                                    className="checkbox checkbox-primary"
-                                />
-                            </label>
-                        </div>
-                    );
+            <TabPanel>
+                <h2>Service ID : {selectedNode?.id}</h2>
+                <p><b>Depends On:</b> {selectedNode?.data?.depends_on?.join(", ") || "None"}</p>
+                <p><b>Volumes:</b> {selectedNode?.data?.volumes?.join(", ") || "None"}</p>
 
-                })
-            }
-        </div> */}
-
-        <div>
-
-            <Editor
-                height="70vh"
-                defaultLanguage="yaml"
-                value = {content}
-                // onMount={handleEditorDidMount}
-                onChange={(value) => setNewConfiguration(value ?? "")}
-                // value={JSON.stringify(selectedNode?.data, null, 2)}
-                // onChange={(value) => handleChange(value || "", )}
-                theme="vs-dark"  // 🌙 Mode sombre + coloration syntaxique
-                options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-                wordWrap: "on", // Retour à la ligne auto
-                tabSize: 2,
-                }}
-            />
-        </div>
+                <div>
+                    <Editor
+                        height="70vh"
+                        defaultLanguage="yaml"
+                        value = {content}
+                        // onMount={handleEditorDidMount}
+                        onChange={(value) => setNewConfiguration(value ?? "")}
+                        // value={JSON.stringify(selectedNode?.data, null, 2)}
+                        // onChange={(value) => handleChange(value || "", )}
+                        theme="vs-dark"  // 🌙 Mode sombre + coloration syntaxique
+                        options={{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        wordWrap: "on", // Retour à la ligne auto
+                        tabSize: 2,
+                        }}
+                    />
+                </div>
+            </TabPanel>
+            <TabPanel>
+            <h2>Any content 2</h2>
+            </TabPanel>
+        </Tabs>
 
 
 
@@ -126,6 +117,38 @@ export const NodeInfoPopup: React.FC = () => {
                 }}
             >Fermer</button>
         </div>
+
+
+
+
+
+
+{/*     kept for future enhancement
+        <div>
+            {
+                Object.keys(parsedData.services).map((serviceName) => {
+                    const service = parsedData.services[serviceName];
+                    return (
+                        <div key={serviceName}>
+                            <label>
+                                {serviceName}
+                                <input
+                                    checked={selectedNode?.data?.depends_on?.includes(serviceName)}
+                                    type="checkbox"
+                                    className="checkbox checkbox-primary"
+                                />
+                            </label>
+                        </div>
+                    );
+
+                })
+            }
+        </div> */}
+
+
+
+
+
 
       </Modal>
 

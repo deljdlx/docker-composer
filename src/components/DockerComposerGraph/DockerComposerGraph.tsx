@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useMemo, useState, useCallback } from "react"
 import ReactECharts from "echarts-for-react";
 
 import { useDockerComposerStore } from "../../stores/useDockerComposerStore";
+import { usePanelStore } from "../../stores/usePanelStore";
 
 
 type DockerComposerGraphProps = {
@@ -13,14 +14,29 @@ export const DockerComposerGraph: React.FC<DockerComposerGraphProps> = ({
 }) => {
 
 
-  // const {doNothing, setSelectedNode, parsedData } = useDockerComposerStore();
-  const { parsedData, content } = useDockerComposerStore();
-  // const setSelectedNode = useDockerComposerStore((state) => state.setSelectedNode);
+ const {
+    configuration,
+    selectedNode,
+    selectedService,
+  } = useDockerComposerStore();
 
-  // const parsedData = useDockerComposerStore.getState().parsedData;
+  const { rightPanelSize } = usePanelStore();
+  const width = useMemo(() => {
+    return window.innerWidth * rightPanelSize / 100;
+  },[rightPanelSize]);
+  const height = window.innerHeight;
+
+
+
+
   const setSelectedNode = useDockerComposerStore.getState().setSelectedNode;
 
-  const services = parsedData.services || {};
+
+
+  const [zoom, setZoom] = useState<number>(2);
+  const [center, setCenter] = useState<string[]>(['50%', '50%']);
+
+  const services = configuration.services || {};
   const chartRef = useRef<any>(null);
 
 
@@ -43,7 +59,7 @@ export const DockerComposerGraph: React.FC<DockerComposerGraphProps> = ({
     name: string;
     category: number;
     dependsOnCount ?: number;
-    data ?: any;
+    service ?: any;
   }[] = [];
 
   const links: {
@@ -68,17 +84,8 @@ export const DockerComposerGraph: React.FC<DockerComposerGraphProps> = ({
   ];
 
 
-  // ==========================================================
-
-  useEffect(() => {
-    console.log('%cDockerComposerGraph.tsx :: 67 =============================', 'color: #f00; font-size: 1rem');
-    console.log("RENDER");
-  });
-
-
   //================================================================
 
-  // 🔹 Générer les nœuds des services et leurs relations
   Object.keys(services).forEach((serviceName) => {
     const service = services[serviceName];
 
@@ -107,7 +114,7 @@ export const DockerComposerGraph: React.FC<DockerComposerGraphProps> = ({
       id: serviceName,
       name: serviceName,
       category: categoryIndex,
-      data: service,
+      service: service,
     });
 
     if (service.depends_on) {
@@ -172,72 +179,145 @@ export const DockerComposerGraph: React.FC<DockerComposerGraphProps> = ({
       }
     }
 
-  }, [services]); // ✅ Ne change pas entre chaque render
+  }, [services]);
+
 
   // ==========================================================
 
-  const options ={
-    tooltip: {
-      trigger: "item",
-      formatter: (params: any) => {
-        if (params.dataType === "edge") {
-          return `💡 <b>${params.data.source}</b> depends on <b>${params.data.target}</b>`;
-        }
-        return params.data.name;
-      },
-    },
-    legend: [{
-      data: categories.map((c) => c.name),
-      textStyle: {
-        color: "#FFFF00",
-        fontSize: 14,
-        // fontWeight: "bold",
-        // fontFamily: "Arial",
-      },
-      selected: {
-        "Volumes": false,
-        "Shared Volumes": false,
-      }
-    }],
-    series: [
-      {
-        edgeSymbol: ["none", "arrow"], // 🔥 Définit les flèches pour tous les liens
-        edgeSymbolSize: 10, // 🔹 Taille de la flèche
 
-        type: "graph",
-        layout: "force",
-        force: {
-          edgeLength: [30, 40],
-          repulsion: 100,
-          gravity: 0.1
+  useEffect(() => {
+    console.log('%cDockerComposerGraph.tsx::178::RENDER', 'color: #f00; font-size: 1rem', );
+  });
+
+
+  useEffect(() => {
+
+    console.log('%cDockerComposerGraph.tsx::186::', 'color: #f00; font-size: 1rem', selectedService);
+    console.log('%cDockerComposerGraph.tsx::187::', 'color: #f00; font-size: 1rem', chartRef.current);
+
+    if (selectedService && chartRef.current) {
+      const chart = chartRef.current.getEchartsInstance();
+
+      const data = chart.getOption().series[0].data;
+
+      const nodeIndex = data.findIndex((n: any) => n.id === selectedService.id);
+
+      // not used, kept for future use
+      // const selectedNode = data[nodeIndex];
+
+      if (nodeIndex !== -1) {
+        setTimeout(() => {
+
+          // not used, kept for future use
+          // const pointInPixel = chart.convertToPixel({ seriesIndex: 0 }, [selectedNode.x, selectedNode.y]);
+
+          chart.dispatchAction({
+            type: "focusNodeAdjacency",
+            seriesIndex: 0,
+            dataIndex: nodeIndex,
+          });
+
+          chart.dispatchAction({
+            type: "highlight",
+            seriesIndex: 0,
+            dataIndex: nodeIndex,
+          });
+
+          chart.dispatchAction({
+            type: "showTip",
+            seriesIndex: 0,
+            dataIndex: nodeIndex,
+          });
+
+
+        }, 100);
+      }
+    }
+  }, [selectedNode, nodes]);
+
+
+  const handleFinished = () => {
+    // kept for future use
+  };
+
+
+  // ==========================================================
+
+  const options = useMemo(() => {
+
+    return {
+      tooltip: {
+        trigger: "item",
+        formatter: (params: any) => {
+          if (params.dataType === "edge") {
+            return `💡 <b>${params.data.source}</b> depends on <b>${params.data.target}</b>`;
+          }
+          return params.data.name;
         },
-        roam: true,
-        draggable: true,
-        label: {
-          show: true,
-          fontSize: 12,
-          color: "#ccc",
+      },
+      legend: [{
+        data: categories.map((c) => c.name),
+        textStyle: {
+          color: "#FFFF00",
+          fontSize: 14,
           // fontWeight: "bold",
           // fontFamily: "Arial",
         },
-        data: nodes.map((node) => ({
-          id: node.id,
-          name: node.name,
-          category: node.category,
-          symbolSize: 20 + (node.dependsOnCount || 0) * 5,
-          data: node.data,
+        selected: {
+          "Volumes": false,
+          "Shared Volumes": false,
+        }
+      }],
+      series: [
+        {
+          zoom: zoom,
+          center: center,
+          edgeSymbol: ["none", "arrow"], // 🔥 Définit les flèches pour tous les liens
+          edgeSymbolSize: 10, // 🔹 Taille de la flèche
 
-        })),
-        links: links,
-        categories: categories,
-        lineStyle: {
-          color: "source",
-          // curveness: 0.3,
-          width: 3,
+          type: "graph",
+          layout: "force",
+          force: {
+            edgeLength: [30, 40],
+            repulsion: 100,
+            gravity: 0.1,
+            layoutAnimation: false,
+          },
+          roam: true,
+          draggable: true,
+          label: {
+            show: true,
+            fontSize: 12,
+            color: "#ccc",
+            // fontWeight: "bold",
+            // fontFamily: "Arial",
+          },
+          data: nodes.map((node) => ({
+            id: node.id,
+            x: Math.random() * width,
+            y: Math.random() * height,
+            name: node.name,
+            category: node.category,
+            symbolSize: 20 + (node.dependsOnCount || 0) * 5,
+            service: node.service,
+          })),
+          links: links,
+          categories: categories,
+          lineStyle: {
+            color: "source",
+            // curveness: 0.3,
+            width: 3,
+          },
         },
-      },
-    ],
-  };
+      ],
+    };
+  }, [services, width]);
+
+  if(selectedService) {
+    // TODO
+  }
+
+
 
   return (
     <>
@@ -250,7 +330,13 @@ export const DockerComposerGraph: React.FC<DockerComposerGraphProps> = ({
           width: "100%"
         }}
         onEvents={{
-          click: handleGraphClick
+          click: handleGraphClick,
+          finished: handleFinished,
+          globalCursorTaken : (params: any) => {
+            console.log('%cDockerComposerGraph.tsx::393::', 'color: #f00; font-size: 1rem', params);
+            // setZoom(params.zoom);
+            // setCenter(params.center);
+          }
         }}
       />
     </>

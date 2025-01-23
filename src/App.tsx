@@ -16,30 +16,37 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {  usePanelStore } from "./stores/usePanelStore";
 
 
-
-import {TestButton} from './components/TestButton/TestButton';
-
-
 import Modal from 'react-modal';
 
 import { NodeInfoPopup } from './components/NodeInfoPopup/NodeInfoPopup';
 
-import { ContainerList } from './components/ContainerList/ContainerList';
+// import { ContainerList } from './components/ContainerList/ContainerList';
+// import Box from '@mui/material/Box';
+// import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+// import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+// import { TimeClock } from '@mui/x-date-pickers/TimeClock';
+
+
+
 
 // import { DockerComposerFlow } from './components/DockerComposerFlow/DockerComposerFlow';
 
 
+console.clear();
+
 Modal.setAppElement("#root")
+
+
+
+
 
 
 function App() {
 
   const {
     selectedService,
+    setConfigurationByYaml,
   } = useDockerComposerStore();
-
-  const [selectedNode, setSelectedNode] = useState<any>(null);
-
 
   const {
     leftPanelSize,
@@ -47,10 +54,21 @@ function App() {
     setSizes
   } = usePanelStore();
 
+  const [selectedNode, setSelectedNode] = useState<any>(null);
+
 
   useEffect(() => {
-    console.log('%cApp.tsx :: 33 =============================', 'color: #f00; font-size: 1rem');
-    console.log('APP RENDER');
+    const fetchData = async () => {
+      const response = await fetch('/demos/00.yml');
+      const yaml = await response.text();
+      setConfigurationByYaml(yaml);
+    };
+    fetchData();
+  }, []);
+
+
+  useEffect(() => {
+    console.log('%cApp.tsx::71', 'color: #f00; font-size: 1rem', 'RENDER APP');
   });
 
 
@@ -66,8 +84,7 @@ function App() {
   };
 
   const handleNodeClick = (node: any) => {
-    console.log('%cApp.tsx :: 53 =============================', 'color: #f00; font-size: 1rem');
-    console.log(node);
+    console.log('%cApp.tsx::87::node clicked', 'color: #f00; font-size: 1rem', node);
     setSelectedNode(node);
   }
 
@@ -75,7 +92,7 @@ function App() {
   return (
     <div className="App">
       <NodeInfoPopup/>
-      <div className="header">HEADER {selectedService}</div>
+      <div className="header">HEADER {selectedService?.id || ""}</div>
       <div style={{ height: "100vh", width: "100vw" }}>
         <PanelGroup
           direction="horizontal"
